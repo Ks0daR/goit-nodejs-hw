@@ -19,7 +19,10 @@
     "url": "https://github.com/Ks0daR/goit-nodejs-hw/issues"
   },
   "homepage": "https://github.com/Ks0daR/goit-nodejs-hw#readme",
-  "dependencies": {},
+  "dependencies": {
+    "uuid": "^7.0.3",
+    "yargs": "^15.3.1"
+  },
   "devDependencies": {
     "nodemon": "^2.0.3"
   }
