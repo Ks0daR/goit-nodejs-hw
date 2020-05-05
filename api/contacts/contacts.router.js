@@ -11,6 +11,10 @@ router.post(
   contactsController.addContactToDB
 );
 router.delete('/contacts/:id', contactsController.deleteContactFromDB);
-router.patch('/contacts/:id', contactsController.updateContactData)
+router.patch(
+  '/contacts/:id',
+  contactsController.validateUserUpdateValue,
+  contactsController.updateContactData
+);
 
 export const contactsRouter = router;

@@ -4,8 +4,8 @@ import {
   removeContact,
   addContact,
   updateContact,
-} from "./contacts";
-import Joi from "joi";
+} from './contacts';
+import Joi from 'joi';
 
 class ContactsController {
   async getAllContacts(req, res, next) {
@@ -18,7 +18,7 @@ class ContactsController {
     const userID = Number(req.params.id);
     const response = await getContactById(userID);
     if (!response) {
-      return res.status(404).json({ message: "User Not Found" });
+      return res.status(404).json({ message: 'User Not Found' });
     }
     res.status(200).json(response);
   }
@@ -33,7 +33,23 @@ class ContactsController {
     const validateReq = Joi.validate(req.body, validateRules);
 
     if (validateReq.error) {
-      return res.status(400).json({ message: "missing required name field" });
+      return res.status(400).json({ message: 'missing required name field' });
+    }
+
+    next();
+  }
+
+  validateUserUpdateValue(req, res, next) {
+    const validateRules = Joi.object({
+      name: Joi.string(),
+      email: Joi.string(),
+      phone: Joi.string(),
+    });
+
+    const validateReq = Joi.validate(req.body, validateRules);
+
+    if (validateReq.error) {
+      return res.status(400).json({ message: 'missing required name field' });
     }
 
     next();
@@ -48,22 +64,22 @@ class ContactsController {
   async deleteContactFromDB(req, res, next) {
     const userID = Number(req.params.id);
     const result = await removeContact(userID);
-    if (!result) {
-      return res.status(404).json({ message: "User Not Found" });
+    if (result === -1) {
+      return res.status(404).json({ message: 'User Not Found' });
     }
 
-    res.status(200).json({ message: "contact deleted" });
+    res.status(200).json({ message: 'contact deleted' });
   }
 
   async updateContactData(req, res, next) {
     if (!req.body) {
-      return res.status(400).json({ message: "missing fields" });
+      return res.status(400).json({ message: 'missing fields' });
     }
 
     const userID = Number(req.params.id);
     const result = await updateContact(userID, req.body);
     if (!result) {
-      return res.status(404).json({ message: "Not found" });
+      return res.status(404).json({ message: 'Not found' });
     }
     res.status(200).json(result);
   }
