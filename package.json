@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-
   "dependencies": {
     "cors": "^2.8.5",
     "esm": "^3.2.25",
@@ -26,6 +25,5 @@
   "bugs": {
     "url": "https://github.com/Ks0daR/goit-nodejs-hw/issues"
   },
-
   "homepage": "https://github.com/Ks0daR/goit-nodejs-hw#readme"
 }
