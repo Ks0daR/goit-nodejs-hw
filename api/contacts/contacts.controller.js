@@ -1,22 +1,15 @@
-import {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-} from './contacts';
 import Joi from 'joi';
+import { contactsModel } from './contacts.model';
 
 class ContactsController {
   async getAllContacts(req, res, next) {
-    const response = await listContacts();
-    console.log(response);
+    const response = await contactsModel.getAllContacts();
     res.status(200).json(response);
   }
 
   async getContactById(req, res, next) {
-    const userID = Number(req.params.id);
-    const response = await getContactById(userID);
+    const userID = req.params.id;
+    const response = await contactsModel.getContactById(userID);
     if (!response) {
       return res.status(404).json({ message: 'User Not Found' });
     }
@@ -56,32 +49,41 @@ class ContactsController {
   }
 
   async addContactToDB(req, res, next) {
-    const { name, email, phone } = req.body;
-    const result = await addContact(name, email, phone);
-    res.status(201).json(result);
+    try {
+      const contact = req.body;
+      const result = await contactsModel.addContact(contact);
+      res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
   }
 
   async deleteContactFromDB(req, res, next) {
-    const userID = Number(req.params.id);
-    const result = await removeContact(userID);
-    if (result === -1) {
+    const userID = req.params.id;
+    const response = await contactsModel.getContactById(userID);
+    if (!response) {
       return res.status(404).json({ message: 'User Not Found' });
     }
+    await contactsModel.removeContact(userID);
 
     res.status(200).json({ message: 'contact deleted' });
   }
 
   async updateContactData(req, res, next) {
-    if (!req.body) {
-      return res.status(400).json({ message: 'missing fields' });
-    }
+    try {
+      if (!req.body) {
+        return res.status(400).json({ message: 'missing fields' });
+      }
 
-    const userID = Number(req.params.id);
-    const result = await updateContact(userID, req.body);
-    if (!result) {
-      return res.status(404).json({ message: 'Not found' });
+      const userID = req.params.id;
+      const result = await contactsModel.updateContact(userID, req.body);
+      if (!result) {
+        return res.status(404).json({ message: 'Not found' });
+      }
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
     }
-    res.status(200).json(result);
   }
 }
 
