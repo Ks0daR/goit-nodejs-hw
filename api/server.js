@@ -46,6 +46,7 @@ export class Server {
       });
     } catch (err) {
       console.log(err);
+      process.exit(1);
     }
   }
 
