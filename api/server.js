@@ -5,10 +5,10 @@ import { contactsRouter } from './contacts/contacts.router';
 import mongoose from 'mongoose';
 
 const PORT = process.env.PORT;
-// const corsOptions = {
-//   orgign: 'http://localhost:3000',
-//   optionsSuccessStatus: 200,
-// };
+const corsOptions = {
+  orgign: 'http://localhost:3000',
+  optionsSuccessStatus: 200,
+};
 
 export class Server {
   constructor() {
