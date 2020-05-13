@@ -15,7 +15,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start": "npm i && node start.js",
+    "start": "npm i && node ./start.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
