@@ -30,7 +30,7 @@ export class Server {
 
   initMiddleware() {
     this.server.use(express.json());
-    // this.server.use(cors(corsOptions));
+    this.server.use(cors(corsOptions));
     this.server.use(morgan('tiny'));
   }
 
