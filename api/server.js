@@ -4,7 +4,7 @@ import morgan from 'morgan';
 import { contactsRouter } from './contacts/contacts.router';
 import mongoose from 'mongoose';
 
-const PORT = process.env.PORT;
+const PORT = 8080;
 // const corsOptions = {
 //   orgign: 'http://localhost:3000',
 //   optionsSuccessStatus: 200,
