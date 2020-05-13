@@ -14,9 +14,9 @@
     "uuid": "^8.0.0"
   },
   "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm i && node start.js"
+  "script": {
+    "start": "npm i && node start.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
