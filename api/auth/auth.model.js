@@ -19,6 +19,7 @@ userSchema.statics.getUserEmail = getUserEmail;
 userSchema.statics.createUser = createUser;
 userSchema.statics.updateUser = updateUser;
 userSchema.statics.findUserByToken = findUserByToken;
+userSchema.statics.getUserByIdAndDeleteToken = getUserByIdAndDeleteToken;
 
 function getUserEmail(email) {
   return this.findOne({ email });
@@ -34,6 +35,13 @@ function updateUser(email, token) {
 
 function findUserByToken(token) {
   return this.findOne({ token });
+}
+
+function getUserByIdAndDeleteToken(userId) {
+  if (!ObjectId(userId)) {
+    return null;
+  }
+  return this.findByIdAndUpdate(userId, { token: '' });
 }
 
 export const userModel = mongoose.model('User', userSchema);

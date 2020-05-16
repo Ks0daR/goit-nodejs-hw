@@ -47,6 +47,10 @@ class AuthController {
 
   async autorizate(req, res, next) {
     const authHeaders = req.get('Authorization');
+    console.log(authHeaders);
+    if (!authHeaders) {
+      return res.status(401).json('Unauthorized');
+    }
     const token = authHeaders.replace('Bearer ', '');
 
     const user = await userModel.findUserByToken(token);
@@ -65,7 +69,25 @@ class AuthController {
   }
 
   async userLogOut(req, res, next) {
-    console.log(req.user);
+    const userID = req.user._id;
+    if (!userID) {
+      return res.status(401).json('Not authorized');
+    }
+
+    await userModel.getUserByIdAndDeleteToken(userID);
+
+    return res.status(204);
+  }
+
+  async getCurrentUserByToken(req, res, next) {
+    const user = await userModel.findUserByToken(req.user.token);
+    if (!user) {
+      res.status(401).json('Unauthorized');
+    }
+
+    return res
+      .status(200)
+      .json({ email: user.email, subscription: user.subscription });
   }
 
   async hashingPassword(password) {

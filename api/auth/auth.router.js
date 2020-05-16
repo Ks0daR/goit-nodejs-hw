@@ -14,4 +14,10 @@ router.post(
   authController.userLogIn
 );
 router.patch('/logout', authController.autorizate, authController.userLogOut);
+
+router.get(
+  '/users/current',
+  authController.autorizate,
+  authController.getCurrentUserByToken
+);
 export const authRouter = router;
