@@ -21,7 +21,7 @@ export class Server {
     this.initMiddleware();
     this.initRoutes();
     await this.initDbConnect();
-    // this.controlError;
+    this.controlError();
     this.startListening();
   }
 
@@ -51,6 +51,13 @@ export class Server {
       console.log(err);
       process.exit(1);
     }
+  }
+
+  controlError() {
+    this.server.use((err, req, res, next) => {
+      delete err.stack;
+      return res.status(err.status).json(err.message);
+    });
   }
 
   startListening() {
