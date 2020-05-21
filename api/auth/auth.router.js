@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import { authController } from './auth.controller';
 import { upload } from '../helpers/multer';
-import { imgCompressor } from '../helpers/imagemin';
+import { compressorImg } from '../helpers/mozjpeg';
 
 const router = Router();
 
 router.post(
   '/register',
   upload.single('avatar'),
-  imgCompressor,
+  compressorImg,
   authController.validateRequestBody,
   authController.registerUser
 );
