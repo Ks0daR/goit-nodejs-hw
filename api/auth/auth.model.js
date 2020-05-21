@@ -12,7 +12,8 @@ const userSchema = new Schema({
     enum: ['free', 'pro', 'premium'],
     default: 'free',
   },
-  token: { type: String, required: true },
+  avatarURL: { type: String },
+  token: { type: String },
 });
 
 userSchema.statics.getUserEmail = getUserEmail;

@@ -19,8 +19,8 @@ export class Server {
   async start() {
     this.initServer();
     this.initMiddleware();
-    this.initRoutes();
     await this.initDbConnect();
+    this.initRoutes();
     this.controlError();
     this.startListening();
   }
@@ -30,6 +30,7 @@ export class Server {
   }
 
   initMiddleware() {
+    this.server.use(express.static('public'));
     this.server.use(express.json());
     this.server.use(cors(corsOptions));
     this.server.use(morgan('tiny'));
@@ -56,7 +57,8 @@ export class Server {
   controlError() {
     this.server.use((err, req, res, next) => {
       delete err.stack;
-      return res.status(err.status).json(err.message);
+      console.log(err);
+      return res.status(500).json('err.message');
     });
   }
 

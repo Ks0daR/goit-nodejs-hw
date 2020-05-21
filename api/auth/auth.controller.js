@@ -7,6 +7,8 @@ import { createControllerProxy } from '../helpers/controllerProxy';
 class AuthController {
   async registerUser(req, res, next) {
     const { email, password } = req.body;
+    console.log(req.file);
+
     const checkedEmailInDb = await userModel.getUserEmail(email);
     if (checkedEmailInDb) {
       return res.status(409).json('User alredy exist');
@@ -14,11 +16,14 @@ class AuthController {
 
     const passwordHash = await this.hashingPassword(password);
 
-    await userModel.createUser({ email, password: passwordHash });
+    const result = await userModel.createUser({
+      email,
+      password: passwordHash,
+    });
 
     return res
       .status(201)
-      .json({ user: { email, subscription: checkedEmailInDb.subscription } });
+      .json({ user: { email, subscription: result.subscription } });
   }
 
   async userLogIn(req, res, next) {
