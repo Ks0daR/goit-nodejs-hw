@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import Joi from '@hapi/joi';
 import { userModel } from './auth.model';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -113,7 +113,7 @@ class AuthController {
       password: Joi.string().required(),
     });
 
-    const userValidate = Joi.validate(req.body, userRules);
+    const userValidate = userRules.validate(req.body);
     if (userValidate.error) {
       return res.status(400).json('Invalid request body');
     }
