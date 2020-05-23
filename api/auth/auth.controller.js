@@ -7,7 +7,6 @@ import { createControllerProxy } from '../helpers/controllerProxy';
 class AuthController {
   async registerUser(req, res, next) {
     const { email, password } = req.body;
-    console.log(req.file);
 
     const checkedEmailInDb = await userModel.getUserEmail(email);
     if (checkedEmailInDb) {
@@ -16,14 +15,17 @@ class AuthController {
 
     const passwordHash = await this.hashingPassword(password);
 
+    const avatarURL = `${process.env.SERVER_LINK}${process.env.IMAGES_CATALOG}${req.file.filename}`;
+
     const result = await userModel.createUser({
       email,
       password: passwordHash,
+      avatarURL,
     });
 
     return res
       .status(201)
-      .json({ user: { email, subscription: result.subscription } });
+      .json({ user: { email, subscription: result.subscription, avatarURL } });
   }
 
   async userLogIn(req, res, next) {
@@ -52,7 +54,6 @@ class AuthController {
 
   async autorizate(req, res, next) {
     const authHeaders = req.get('Authorization');
-    console.log(authHeaders);
     if (!authHeaders) {
       return res.status(401).json('Unauthorized');
     }
@@ -84,7 +85,22 @@ class AuthController {
     return res.status(204);
   }
 
+  async userUpdateAvatar(req, res, next) {
+    const userEmail = req.user.email;
+
+    if (!userEmail) {
+      res.status(401).json('Not authorized');
+    }
+
+    const avatarURL = `${process.env.SERVER_LINK}${process.env.IMAGES_CATALOG}${req.file.filename}`;
+
+    await userModel.updateUserAvatar(req.user.email, avatarURL);
+
+    return res.status(200).json(avatarURL);
+  }
+
   async getCurrentUserByToken(req, res, next) {
+    console.log(req.user.token);
     const user = await userModel.findUserByToken(req.user.token);
     if (!user) {
       res.status(401).json('Unauthorized');

@@ -19,6 +19,14 @@ router.post(
 );
 router.patch('/logout', authController.autorizate, authController.userLogOut);
 
+router.patch(
+  '/users/avatars',
+  authController.autorizate,
+  upload.single('avatar'),
+  compressorImg,
+  authController.userUpdateAvatar
+);
+
 router.get(
   '/users/current',
   authController.autorizate,
