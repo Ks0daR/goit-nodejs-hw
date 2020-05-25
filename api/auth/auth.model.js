@@ -12,7 +12,8 @@ const userSchema = new Schema({
     enum: ['free', 'pro', 'premium'],
     default: 'free',
   },
-  token: { type: String, required: true },
+  avatarURL: { type: String, required: true },
+  token: { type: String },
 });
 
 userSchema.statics.getUserEmail = getUserEmail;
@@ -20,6 +21,7 @@ userSchema.statics.createUser = createUser;
 userSchema.statics.updateUser = updateUser;
 userSchema.statics.findUserByToken = findUserByToken;
 userSchema.statics.getUserByIdAndDeleteToken = getUserByIdAndDeleteToken;
+userSchema.statics.updateUserAvatar = updateUserAvatar;
 
 function getUserEmail(email) {
   return this.findOne({ email });
@@ -42,6 +44,10 @@ function getUserByIdAndDeleteToken(userId) {
     return null;
   }
   return this.findByIdAndUpdate(userId, { token: '' });
+}
+
+function updateUserAvatar(email, avatarURL) {
+  return this.findOneAndUpdate({ email }, { avatarURL });
 }
 
 export const userModel = mongoose.model('User', userSchema);

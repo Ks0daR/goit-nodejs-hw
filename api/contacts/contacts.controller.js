@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import Joi from '@hapi/joi';
 import { contactsModel } from './contacts.model';
 
 class ContactsController {
@@ -39,7 +39,13 @@ class ContactsController {
       phone: Joi.string(),
     });
 
-    const validateReq = Joi.validate(req.body, validateRules);
+    const hasUserFile = req.body.filename && req.body.fieldname === 'avatar';
+
+    if (!hasUserFile) {
+      return res.status(400).json('User avatar not added');
+    }
+
+    const validateReq = validateRules.validate(req.body);
 
     if (validateReq.error) {
       return res.status(400).json({ message: 'missing required name field' });

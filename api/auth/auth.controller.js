@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import Joi from '@hapi/joi';
 import { userModel } from './auth.model';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -7,6 +7,7 @@ import { createControllerProxy } from '../helpers/controllerProxy';
 class AuthController {
   async registerUser(req, res, next) {
     const { email, password } = req.body;
+
     const checkedEmailInDb = await userModel.getUserEmail(email);
     if (checkedEmailInDb) {
       return res.status(409).json('User alredy exist');
@@ -14,11 +15,17 @@ class AuthController {
 
     const passwordHash = await this.hashingPassword(password);
 
-    await userModel.createUser({ email, password: passwordHash });
+    const avatarURL = `${process.env.SERVER_LINK}${process.env.IMAGES_CATALOG}${req.file.filename}`;
+
+    const result = await userModel.createUser({
+      email,
+      password: passwordHash,
+      avatarURL,
+    });
 
     return res
       .status(201)
-      .json({ user: { email, subscription: checkedEmailInDb.subscription } });
+      .json({ user: { email, subscription: result.subscription, avatarURL } });
   }
 
   async userLogIn(req, res, next) {
@@ -47,7 +54,6 @@ class AuthController {
 
   async autorizate(req, res, next) {
     const authHeaders = req.get('Authorization');
-    console.log(authHeaders);
     if (!authHeaders) {
       return res.status(401).json('Unauthorized');
     }
@@ -79,7 +85,22 @@ class AuthController {
     return res.status(204);
   }
 
+  async userUpdateAvatar(req, res, next) {
+    const userEmail = req.user.email;
+
+    if (!userEmail) {
+      res.status(401).json('Not authorized');
+    }
+
+    const avatarURL = `${process.env.SERVER_LINK}${process.env.IMAGES_CATALOG}${req.file.filename}`;
+
+    await userModel.updateUserAvatar(req.user.email, avatarURL);
+
+    return res.status(200).json(avatarURL);
+  }
+
   async getCurrentUserByToken(req, res, next) {
+    console.log(req.user.token);
     const user = await userModel.findUserByToken(req.user.token);
     if (!user) {
       res.status(401).json('Unauthorized');
@@ -108,7 +129,7 @@ class AuthController {
       password: Joi.string().required(),
     });
 
-    const userValidate = Joi.validate(req.body, userRules);
+    const userValidate = userRules.validate(req.body);
     if (userValidate.error) {
       return res.status(400).json('Invalid request body');
     }

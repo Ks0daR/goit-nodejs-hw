@@ -19,9 +19,9 @@ export class Server {
   async start() {
     this.initServer();
     this.initMiddleware();
-    this.initRoutes();
     await this.initDbConnect();
-    // this.controlError;
+    this.initRoutes();
+    this.controlError();
     this.startListening();
   }
 
@@ -30,6 +30,7 @@ export class Server {
   }
 
   initMiddleware() {
+    this.server.use(express.static('public'));
     this.server.use(express.json());
     this.server.use(cors(corsOptions));
     this.server.use(morgan('tiny'));
@@ -42,7 +43,7 @@ export class Server {
 
   async initDbConnect() {
     try {
-      mongoose.connect(process.env.MONGO_DB_URI, {
+      await mongoose.connect(process.env.MONGO_DB_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       });
@@ -51,6 +52,14 @@ export class Server {
       console.log(err);
       process.exit(1);
     }
+  }
+
+  controlError() {
+    this.server.use((err, req, res, next) => {
+      delete err.stack;
+      console.log(err);
+      return res.status(500).json('err.message');
+    });
   }
 
   startListening() {
