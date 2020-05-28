@@ -12,12 +12,16 @@ router.post(
   authController.validateRequestBody,
   authController.registerUser
 );
+
 router.post(
   '/login',
   authController.validateRequestBody,
   authController.userLogIn
 );
+
 router.patch('/logout', authController.autorizate, authController.userLogOut);
+
+router.get('/verify/:verificationToken', authController.userVerification);
 
 router.patch(
   '/users/avatars',

@@ -23,3 +23,9 @@ export class Unauthorized extends BaseError {
     super('UnauthorizedError', message, 401);
   }
 }
+
+export class BadRequest extends BaseError {
+  constructor(message) {
+    super('BadRequestError', message, 400);
+  }
+}
