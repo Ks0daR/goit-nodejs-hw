@@ -4,6 +4,11 @@ const { ObjectId } = mongoose.Types;
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 
+export const USER_STATUSES = {
+  NOT_VERIFY: 'NOT_VERIFY',
+  ACTIVE: 'ACTIVE',
+};
+
 const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -11,6 +16,12 @@ const userSchema = new Schema({
     type: String,
     enum: ['free', 'pro', 'premium'],
     default: 'free',
+  },
+  status: {
+    type: String,
+    required: true,
+    enum: Object.values(USER_STATUSES),
+    default: USER_STATUSES.NOT_VERIFY,
   },
   avatarURL: { type: String, required: true },
   token: { type: String },
