@@ -58,7 +58,7 @@ export class Server {
     this.server.use((err, req, res, next) => {
       delete err.stack;
       console.log(err);
-      return res.status(500).json('err.message');
+      return res.status(err.status).json(err.message);
     });
   }
 

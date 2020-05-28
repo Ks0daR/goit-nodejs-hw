@@ -1,114 +1,184 @@
 import Joi from '@hapi/joi';
-import { userModel } from './auth.model';
+import { userModel, USER_STATUSES } from './auth.model';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { verify } from 'jsonwebtoken';
 import { createControllerProxy } from '../helpers/controllerProxy';
+import {
+  Conflict,
+  NotFound,
+  Unauthorized,
+  BadRequest,
+} from '../helpers/errors.constructor';
+import sgMail from '@sendgrid/mail';
 
 class AuthController {
   async registerUser(req, res, next) {
-    const { email, password } = req.body;
+    try {
+      const { email, password } = req.body;
 
-    const checkedEmailInDb = await userModel.getUserEmail(email);
-    if (checkedEmailInDb) {
-      return res.status(409).json('User alredy exist');
+      const checkedEmailInDb = await userModel.getUserEmail(email);
+      if (checkedEmailInDb) {
+        throw new Conflict('User alredy exist');
+      }
+
+      const passwordHash = await this.hashingPassword(password);
+
+      const avatarURL = `${process.env.SERVER_LINK}${process.env.IMAGES_CATALOG}${req.file.filename}`;
+
+      const result = await userModel.createUser({
+        email,
+        password: passwordHash,
+        avatarURL,
+      });
+
+      this.emailValidation(result);
+
+      return res.status(201).json({
+        user: { email, subscription: result.subscription, avatarURL },
+      });
+    } catch (err) {
+      next(err);
     }
-
-    const passwordHash = await this.hashingPassword(password);
-
-    const avatarURL = `${process.env.SERVER_LINK}${process.env.IMAGES_CATALOG}${req.file.filename}`;
-
-    const result = await userModel.createUser({
-      email,
-      password: passwordHash,
-      avatarURL,
-    });
-
-    return res
-      .status(201)
-      .json({ user: { email, subscription: result.subscription, avatarURL } });
   }
 
   async userLogIn(req, res, next) {
-    const { email, password } = req.body;
-    const userAuth = await userModel.getUserEmail(email);
-    if (!userAuth) {
-      return res.status(409).json('User not found');
+    try {
+      const { email, password } = req.body;
+      const userAuth = await userModel.getUserEmail(email);
+      if (!userAuth) {
+        throw new NotFound('User not found');
+      }
+
+      if (userAuth.status === USER_STATUSES.NOT_VERIFY) {
+        throw new BadRequest('User not verified');
+      }
+
+      const checkedPassword = await this.passwordChecked(
+        password,
+        userAuth.password
+      );
+
+      if (!checkedPassword) {
+        throw new Unauthorized('User not authorized');
+      }
+      console.log(userAuth.id);
+      const token = this.generateToken(userAuth._id);
+      await userModel.updateUser(userAuth.email, token);
+
+      return res
+        .status(200)
+        .json({ user: { email, subscription: userAuth.subscription }, token });
+    } catch (err) {
+      next(err);
     }
+  }
 
-    const checkedPassword = await this.passwordChecked(
-      password,
-      userAuth.password
-    );
+  async userVerification(req, res, next) {
+    try {
+      const { verificationToken } = req.params;
 
-    if (!checkedPassword) {
-      return res.status(401).json('Unauthorized');
+      const verifyUser = await userModel.getUserByVerificationToken(
+        verificationToken
+      );
+
+      if (!verifyUser) {
+        throw new NotFound('User not found');
+      }
+
+      await userModel.verificatedUser(verifyUser.email);
+
+      res.status(200).json('User been verificated');
+    } catch (err) {
+      next(err);
     }
-    console.log(userAuth.id);
-    const token = this.generateToken(userAuth._id);
-    await userModel.updateUser(userAuth.email, token);
-
-    return res
-      .status(200)
-      .json({ user: { email, subscription: userAuth.subscription }, token });
   }
 
   async autorizate(req, res, next) {
-    const authHeaders = req.get('Authorization');
-    if (!authHeaders) {
-      return res.status(401).json('Unauthorized');
-    }
-    const token = authHeaders.replace('Bearer ', '');
-
-    const user = await userModel.findUserByToken(token);
-    if (!user) {
-      return res.status(401).json('Unauthorized');
-    }
     try {
-      jwt.verify(token, process.env.JWT_PRIVATE_KEY, user._id);
+      const authHeaders = req.get('Authorization');
+      if (!authHeaders) {
+        throw new Unauthorized('User not authorized');
+      }
+      const token = authHeaders.replace('Bearer ', '');
+
+      const user = await userModel.findUserByToken(token);
+      if (!user) {
+        throw new Unauthorized('User not authorized');
+      }
+      try {
+        jwt.verify(token, process.env.JWT_PRIVATE_KEY, user._id);
+      } catch (err) {
+        throw err;
+      }
+
+      req.user = user;
+
+      next();
     } catch (err) {
-      throw err;
+      next(err);
     }
-
-    req.user = user;
-
-    next();
   }
 
   async userLogOut(req, res, next) {
-    const userID = req.user._id;
-    if (!userID) {
-      return res.status(401).json('Not authorized');
+    try {
+      const userID = req.user._id;
+      if (!userID) {
+        throw new Unauthorized('User not authorized');
+      }
+
+      await userModel.getUserByIdAndDeleteToken(userID);
+
+      return res.status(204);
+    } catch (err) {
+      next(err);
     }
-
-    await userModel.getUserByIdAndDeleteToken(userID);
-
-    return res.status(204);
   }
 
   async userUpdateAvatar(req, res, next) {
-    const userEmail = req.user.email;
+    try {
+      const userEmail = req.user.email;
 
-    if (!userEmail) {
-      res.status(401).json('Not authorized');
+      if (!userEmail) {
+        throw new Unauthorized('User not authorized');
+      }
+
+      const avatarURL = `${process.env.SERVER_LINK}${process.env.IMAGES_CATALOG}${req.file.filename}`;
+
+      await userModel.updateUserAvatar(req.user.email, avatarURL);
+
+      return res.status(200).json(avatarURL);
+    } catch (err) {
+      next(err);
     }
-
-    const avatarURL = `${process.env.SERVER_LINK}${process.env.IMAGES_CATALOG}${req.file.filename}`;
-
-    await userModel.updateUserAvatar(req.user.email, avatarURL);
-
-    return res.status(200).json(avatarURL);
   }
 
   async getCurrentUserByToken(req, res, next) {
-    console.log(req.user.token);
-    const user = await userModel.findUserByToken(req.user.token);
-    if (!user) {
-      res.status(401).json('Unauthorized');
-    }
+    try {
+      const user = await userModel.findUserByToken(req.user.token);
+      if (!user) {
+        throw new Unauthorized('User not authorized');
+      }
 
-    return res
-      .status(200)
-      .json({ email: user.email, subscription: user.subscription });
+      return res
+        .status(200)
+        .json({ email: user.email, subscription: user.subscription });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async emailValidation(user) {
+    await sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const { verificationToken, email } = user;
+    const validationUrl = `${process.env.SERVER_LINK}auth/verify/${verificationToken}`;
+    const message = {
+      to: email,
+      from: process.env.EMAIL_SENDER,
+      subject: 'Please validate your Email adress',
+      html: `<a href=${validationUrl}>Click here to validate ypur email</a>`,
+    };
+
+    await sgMail.send(message);
   }
 
   async hashingPassword(password) {
@@ -129,12 +199,16 @@ class AuthController {
       password: Joi.string().required(),
     });
 
-    const userValidate = userRules.validate(req.body);
-    if (userValidate.error) {
-      return res.status(400).json('Invalid request body');
-    }
+    try {
+      const userValidate = userRules.validate(req.body);
+      if (userValidate.error) {
+        throw new BadRequest('Invalid request body');
+      }
 
-    next();
+      next();
+    } catch (err) {
+      next(err);
+    }
   }
 }
 
