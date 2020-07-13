@@ -121,12 +121,12 @@ class AuthController {
 
   async userLogOut(req, res, next) {
     try {
-      const userID = req.user._id;
-      if (!userID) {
+      const { _id, email } = req.user;
+      if (!_id) {
         throw new Unauthorized('User not authorized');
       }
 
-      await userModel.getUserByIdAndDeleteToken(userID);
+      await userModel.getUserByEmailAndDeleteToken(email);
 
       return res.status(204);
     } catch (err) {
