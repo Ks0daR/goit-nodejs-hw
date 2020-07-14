@@ -19,12 +19,13 @@
     "morgan": "^1.10.0",
     "mozjpeg": "^6.0.1",
     "multer": "^1.4.2",
+    "nodemon": "^2.0.4",
     "uuid": "^8.1.0"
-
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm i && node start.js"
+    "start": "npm i && node start.js",
+    "serv": "nodemon start.js"
   },
   "repository": {
     "type": "git",

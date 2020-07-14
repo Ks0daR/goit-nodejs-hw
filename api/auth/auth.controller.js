@@ -1,15 +1,15 @@
-import Joi from '@hapi/joi';
-import { userModel, USER_STATUSES } from './auth.model';
-import bcrypt from 'bcrypt';
-import jwt, { verify } from 'jsonwebtoken';
-import { createControllerProxy } from '../helpers/controllerProxy';
+import Joi from "@hapi/joi";
+import { userModel, USER_STATUSES } from "./auth.model";
+import bcrypt from "bcrypt";
+import jwt, { verify } from "jsonwebtoken";
+import { createControllerProxy } from "../helpers/controllerProxy";
 import {
   Conflict,
   NotFound,
   Unauthorized,
   BadRequest,
-} from '../helpers/errors.constructor';
-import sgMail from '@sendgrid/mail';
+} from "../helpers/errors.constructor";
+import sgMail from "@sendgrid/mail";
 
 class AuthController {
   async registerUser(req, res, next) {
@@ -18,7 +18,7 @@ class AuthController {
 
       const checkedEmailInDb = await userModel.getUserEmail(email);
       if (checkedEmailInDb) {
-        throw new Conflict('User alredy exist');
+        throw new Conflict("User alredy exist");
       }
 
       const passwordHash = await this.hashingPassword(password);
@@ -46,11 +46,11 @@ class AuthController {
       const { email, password } = req.body;
       const userAuth = await userModel.getUserEmail(email);
       if (!userAuth) {
-        throw new NotFound('User not found');
+        throw new NotFound("User not found");
       }
 
       if (userAuth.status === USER_STATUSES.NOT_VERIFY) {
-        throw new BadRequest('User not verified');
+        throw new BadRequest("User not verified");
       }
 
       const checkedPassword = await this.passwordChecked(
@@ -59,7 +59,7 @@ class AuthController {
       );
 
       if (!checkedPassword) {
-        throw new Unauthorized('User not authorized');
+        throw new Unauthorized("User not authorized");
       }
       console.log(userAuth.id);
       const token = this.generateToken(userAuth._id);
@@ -82,12 +82,12 @@ class AuthController {
       );
 
       if (!verifyUser) {
-        throw new NotFound('User not found');
+        throw new NotFound("User not found");
       }
 
       await userModel.verificatedUser(verifyUser.email);
 
-      res.status(200).json('User been verificated');
+      res.status(200).json("User been verificated");
     } catch (err) {
       next(err);
     }
@@ -95,15 +95,16 @@ class AuthController {
 
   async autorizate(req, res, next) {
     try {
-      const authHeaders = req.get('Authorization');
-      if (!authHeaders) {
-        throw new Unauthorized('User not authorized');
-      }
-      const token = authHeaders.replace('Bearer ', '');
+      const authHeaders = req.get("Authorization");
 
+      if (!authHeaders) {
+        throw new Unauthorized("User not authorized");
+      }
+      const token = authHeaders.replace("Bearer ", "");
       const user = await userModel.findUserByToken(token);
+
       if (!user) {
-        throw new Unauthorized('User not authorized');
+        throw new Unauthorized("User not authorized");
       }
       try {
         jwt.verify(token, process.env.JWT_PRIVATE_KEY, user._id);
@@ -123,14 +124,12 @@ class AuthController {
     try {
       const { _id, email } = req.user;
       if (!_id) {
-        throw new Unauthorized('User not authorized');
+        throw new Unauthorized("User not authorized");
       }
-
 
       await userModel.getUserByEmailAndDeleteToken(email);
 
-
-      return res.status(204);
+      return res.status(204).json();
     } catch (err) {
       next(err);
     }
@@ -141,7 +140,7 @@ class AuthController {
       const userEmail = req.user.email;
 
       if (!userEmail) {
-        throw new Unauthorized('User not authorized');
+        throw new Unauthorized("User not authorized");
       }
 
       const avatarURL = `${process.env.SERVER_LINK}${process.env.IMAGES_CATALOG}${req.file.filename}`;
@@ -158,7 +157,7 @@ class AuthController {
     try {
       const user = await userModel.findUserByToken(req.user.token);
       if (!user) {
-        throw new Unauthorized('User not authorized');
+        throw new Unauthorized("User not authorized");
       }
 
       return res
@@ -176,7 +175,7 @@ class AuthController {
     const message = {
       to: email,
       from: process.env.EMAIL_SENDER,
-      subject: 'Please validate your Email adress',
+      subject: "Please validate your Email adress",
       html: `<a href=${validationUrl}>Click here to validate ypur email</a>`,
     };
 
@@ -204,7 +203,7 @@ class AuthController {
     try {
       const userValidate = userRules.validate(req.body);
       if (userValidate.error) {
-        throw new BadRequest('Invalid request body');
+        throw new BadRequest("Invalid request body");
       }
 
       next();
