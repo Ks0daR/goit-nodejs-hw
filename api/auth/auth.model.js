@@ -34,7 +34,7 @@ userSchema.statics.getUserEmail = getUserEmail;
 userSchema.statics.createUser = createUser;
 userSchema.statics.updateUser = updateUser;
 userSchema.statics.findUserByToken = findUserByToken;
-userSchema.statics.getUserByIdAndDeleteToken = getUserByIdAndDeleteToken;
+userSchema.statics.getUserByIdAndDeleteToken = getUserByEmailAndDeleteToken;
 userSchema.statics.updateUserAvatar = updateUserAvatar;
 userSchema.statics.getUserByVerificationToken = getUserByVerificationToken;
 userSchema.statics.verificatedUser = verificatedUser;
@@ -56,11 +56,8 @@ function findUserByToken(token) {
   return this.findOne({ token });
 }
 
-function getUserByIdAndDeleteToken(userId) {
-  if (!ObjectId(userId)) {
-    return null;
-  }
-  return this.findByIdAndUpdate(userId, { token: '' });
+function getUserByEmailAndDeleteToken(email) {
+  return this.findByIdAndUpdate(email, { token: '' });
 }
 
 function updateUserAvatar(email, avatarURL) {

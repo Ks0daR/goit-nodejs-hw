@@ -126,7 +126,7 @@ class AuthController {
         throw new Unauthorized('User not authorized');
       }
 
-      await userModel.getUserByIdAndDeleteToken(userID);
+      await userModel.getUserByEmailAndDeleteToken(userID);
 
       return res.status(204);
     } catch (err) {
