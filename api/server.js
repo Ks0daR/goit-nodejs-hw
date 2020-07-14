@@ -11,6 +11,8 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 
+
+
 export class Server {
   constructor() {
     this.server = null;
@@ -33,7 +35,7 @@ export class Server {
     this.server.use(express.static("public"));
     this.server.use(express.json());
     this.server.use(cors(corsOptions));
-    this.server.use(morgan("tiny"));
+    this.server.use(morgan("combined"));
   }
 
   initRoutes() {

@@ -1,5 +1,5 @@
-import Joi from '@hapi/joi';
-import { contactsModel } from './contacts.model';
+import Joi from "@hapi/joi";
+import { contactsModel } from "./contacts.model";
 
 class ContactsController {
   async getAllContacts(req, res, next) {
@@ -11,7 +11,7 @@ class ContactsController {
     const userID = req.params.id;
     const response = await contactsModel.getContactById(userID);
     if (!response) {
-      return res.status(404).json({ message: 'User Not Found' });
+      return res.status(404).json({ message: "User Not Found" });
     }
     res.status(200).json(response);
   }
@@ -22,11 +22,13 @@ class ContactsController {
       email: Joi.string().required(),
       phone: Joi.string().required(),
     });
+    console.log(req.body);
 
-    const validateReq = Joi.validate(req.body, validateRules);
+    const validateReq = validateRules.validate(req.body);
+    console.log(validateReq);
 
     if (validateReq.error) {
-      return res.status(400).json({ message: 'missing required name field' });
+      return res.status(400).json({ message: "missing required name field" });
     }
 
     next();
@@ -39,16 +41,16 @@ class ContactsController {
       phone: Joi.string(),
     });
 
-    const hasUserFile = req.body.filename && req.body.fieldname === 'avatar';
+    const hasUserFile = req.body.filename && req.body.fieldname === "avatar";
 
     if (!hasUserFile) {
-      return res.status(400).json('User avatar not added');
+      return res.status(400).json("User avatar not added");
     }
 
     const validateReq = validateRules.validate(req.body);
 
     if (validateReq.error) {
-      return res.status(400).json({ message: 'missing required name field' });
+      return res.status(400).json({ message: "missing required name field" });
     }
 
     next();
@@ -68,23 +70,23 @@ class ContactsController {
     const userID = req.params.id;
     const response = await contactsModel.getContactById(userID);
     if (!response) {
-      return res.status(404).json({ message: 'User Not Found' });
+      return res.status(404).json({ message: "User Not Found" });
     }
     await contactsModel.removeContact(userID);
 
-    res.status(200).json({ message: 'contact deleted' });
+    res.status(200).json({ message: "contact deleted" });
   }
 
   async updateContactData(req, res, next) {
     try {
       if (!req.body) {
-        return res.status(400).json({ message: 'missing fields' });
+        return res.status(400).json({ message: "missing fields" });
       }
 
       const userID = req.params.id;
       const result = await contactsModel.updateContact(userID, req.body);
       if (!result) {
-        return res.status(404).json({ message: 'Not found' });
+        return res.status(404).json({ message: "Not found" });
       }
       res.status(200).json(result);
     } catch (err) {
