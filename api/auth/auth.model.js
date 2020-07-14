@@ -34,7 +34,7 @@ userSchema.statics.getUserEmail = getUserEmail;
 userSchema.statics.createUser = createUser;
 userSchema.statics.updateUser = updateUser;
 userSchema.statics.findUserByToken = findUserByToken;
-userSchema.statics.getUserByIdAndDeleteToken = getUserByEmailAndDeleteToken;
+userSchema.statics.getUserByEmailAndDeleteToken = getUserByEmailAndDeleteToken;
 userSchema.statics.updateUserAvatar = updateUserAvatar;
 userSchema.statics.getUserByVerificationToken = getUserByVerificationToken;
 userSchema.statics.verificatedUser = verificatedUser;
@@ -57,7 +57,7 @@ function findUserByToken(token) {
 }
 
 function getUserByEmailAndDeleteToken(email) {
-  return this.findByIdAndUpdate(email, { token: '' });
+  return this.updateOne({ email }, { token: '' });
 }
 
 function updateUserAvatar(email, avatarURL) {
