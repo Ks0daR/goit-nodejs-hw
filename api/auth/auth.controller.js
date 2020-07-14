@@ -45,6 +45,8 @@ class AuthController {
     try {
       const { email, password } = req.body;
       const userAuth = await userModel.getUserEmail(email);
+
+      console.log(userAuth);
       if (!userAuth) {
         throw new NotFound("User not found");
       }
@@ -61,13 +63,18 @@ class AuthController {
       if (!checkedPassword) {
         throw new Unauthorized("User not authorized");
       }
-      console.log(userAuth.id);
+
       const token = this.generateToken(userAuth._id);
       await userModel.updateUser(userAuth.email, token);
 
-      return res
-        .status(200)
-        .json({ user: { email, subscription: userAuth.subscription }, token });
+      return res.status(200).json({
+        user: {
+          email,
+          subscription: userAuth.subscription,
+          avatarURL: userAuth.avatarURL,
+        },
+        token,
+      });
     } catch (err) {
       next(err);
     }
