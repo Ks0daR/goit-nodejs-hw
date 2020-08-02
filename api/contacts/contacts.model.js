@@ -1,10 +1,11 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from "mongoose";
 
 const { ObjectId } = mongoose.Types;
 
 const contactSchema = new Schema({
+  userId: { type: String, required: true },
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true },
   phone: { type: String, required: true },
 });
 
@@ -14,8 +15,8 @@ contactSchema.statics.addContact = addContact;
 contactSchema.statics.removeContact = removeContact;
 contactSchema.statics.updateContact = updateContact;
 
-async function getAllContacts() {
-  return this.find();
+async function getAllContacts(userId) {
+  return this.find({ userId });
 }
 
 async function getContactById(id) {
@@ -45,4 +46,4 @@ async function updateContact(id, updateContactInfo) {
   return this.findByIdAndUpdate(id, updateContactInfo);
 }
 
-export const contactsModel = mongoose.model('Contact', contactSchema);
+export const contactsModel = mongoose.model("Contact", contactSchema);
